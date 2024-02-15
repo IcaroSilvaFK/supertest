@@ -1,3 +1,5 @@
+// This package is a library for testing http requests
+// Inspired by supertest on JavaScript ecosystem
 package supertest
 
 import (
@@ -26,11 +28,18 @@ type TesterInterface interface {
 	Url(string) TesterInterface
 	Json(interface{}) TesterInterface
 	Headers(map[string]string) TesterInterface
+	Query(map[string]string) TesterInterface
 	Body([]byte) TesterInterface
 	Status(int) TesterInterface
+	GetUrl() string
 	Build(*testing.T) *Tester
 }
 
+// This method return an instance of Tester
+//
+// instance := supertest.NewHttpTester()
+//
+// The snapshot is used to create a test builder
 func NewHttpTester() TesterInterface {
 	return &Tester{
 		httpHeaders: map[string]string{
@@ -39,7 +48,13 @@ func NewHttpTester() TesterInterface {
 	}
 }
 
+// Using the function from set method from http request
+//
+// instance.Method(http.MethodGet)
+//
+// This return an instance of Tester
 func (tt *Tester) Method(m string) TesterInterface {
+
 	if m == "" {
 		errors["method"] = "Method is required"
 		return nil
@@ -49,6 +64,11 @@ func (tt *Tester) Method(m string) TesterInterface {
 	return tt
 }
 
+// Using the function from set url from http request
+//
+// instance.Url("http://httpbin.org/get")
+//
+// This return an instance of Tester
 func (tt *Tester) Url(url string) TesterInterface {
 	if url == "" {
 		errors["url"] = "Url is required"
@@ -60,6 +80,43 @@ func (tt *Tester) Url(url string) TesterInterface {
 	return tt
 }
 
+// Using the function from set query from http request
+//
+// instance.Query(map[string]string{"foo": "bar", "baz": "qux", "key": "value"})
+//
+// This return an instance of Tester
+func (tt *Tester) Query(q map[string]string) TesterInterface {
+	if q == nil {
+		errors["query"] = "Query is required"
+		return tt
+	}
+
+	var r string
+	for k, v := range q {
+		if v == "" {
+			errors["query"] = "Query value is required"
+			return tt
+		}
+
+		if r != "" {
+			r += "&"
+		} else {
+			r = "?"
+		}
+
+		r += fmt.Sprintf("%s=%s", k, v)
+	}
+
+	tt.httpUrl += r
+
+	return tt
+}
+
+// Using the function from set body return from http request
+//
+// instance.Json(&body)
+//
+// This return an instance of Tester
 func (tt *Tester) Json(i interface{}) TesterInterface {
 	if i == nil {
 		errors["json"] = "Json is required"
@@ -71,6 +128,11 @@ func (tt *Tester) Json(i interface{}) TesterInterface {
 	return tt
 }
 
+// Using the function from set status expected from http request
+//
+// instance.Status(http.StatusOK)
+//
+// This return an instance of Tester
 func (tt *Tester) Status(s int) TesterInterface {
 	if s == 0 {
 		errors["status"] = "Status is required"
@@ -86,6 +148,10 @@ func (tt *Tester) Status(s int) TesterInterface {
 	return tt
 }
 
+// Using the function from set headers from http request
+// the default header as ben set is Content-Type: application/json
+// instance.Headers(map[string]string{"Content-Type": "application/json"})
+// This return an instance of Tester
 func (tt *Tester) Headers(h map[string]string) TesterInterface {
 	if h == nil {
 		errors["headers"] = "Headers is required"
@@ -104,6 +170,11 @@ func (tt *Tester) Headers(h map[string]string) TesterInterface {
 	return tt
 }
 
+// Using the function from set body from http request
+//
+// instance.Body([]byte(`{"title": "foo", "body": "bar", "userId": 1}`))
+//
+// This return an instance of Tester
 func (tt *Tester) Body(bt []byte) TesterInterface {
 	if bt == nil {
 		errors["body"] = "Body is required"
@@ -117,6 +188,11 @@ func (tt *Tester) Body(bt []byte) TesterInterface {
 	return tt
 }
 
+// This return an instance of Tester expected testing
+//
+// instance.Method("GET").Url("http://httpbin.org/status/404").Status(404).Build(t)
+//
+// This return an instance of Tester
 func (tt *Tester) Build(t *testing.T) *Tester {
 
 	tt.makeRequest()
@@ -197,4 +273,11 @@ func (tt *Tester) checkWithStatusIsEqualExpected(status int) {
 		errors["checkWithStatusIsEqualExpected"] = str
 		return
 	}
+}
+
+// GetUrl return the url of http request
+//
+// instance.GetUrl() == "http://httpbin.org/get"
+func (tt *Tester) GetUrl() string {
+	return tt.httpUrl
 }

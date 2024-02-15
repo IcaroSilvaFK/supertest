@@ -69,3 +69,14 @@ func TestShouldRequestNotPostOnRouteNotFound(t *testing.T) {
 
 	tt.Method("POST").Url("https://jsonplaceholder.typicode.com/tod").Body(r).Status(404).Build(t)
 }
+
+func TestShouldUrlMatchOnAddQueryParams(t *testing.T) {
+
+	tt := supertest.NewHttpTester()
+
+	tt.Url("http://httpbin.org/get").Query(map[string]string{"foo": "bar", "baz": "qux", "key": "value"})
+
+	url := tt.GetUrl()
+
+	assert.Equal(t, "http://httpbin.org/get?foo=bar&baz=qux&key=value", url)
+}
