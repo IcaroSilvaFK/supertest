@@ -147,6 +147,10 @@ When submitting an issue, we ask that you please include a complete test functio
 
 This project is licensed under the terms of the MIT license.
 
-# Contributors
+## Huge thanks to our contributors :heart:
 
-@IcaroSilvaFK
+Made with [contrib.rocks](https://contrib.rocks).
+
+<a href="https://github.com/IcaroSilvaFK">
+  <img src="https://avatars.githubusercontent.com/u/86238635?v=4" />
+</a>
