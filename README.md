@@ -146,3 +146,7 @@ When submitting an issue, we ask that you please include a complete test functio
 # License
 
 This project is licensed under the terms of the MIT license.
+
+# Contributors
+
+@IcaroSilvaFK
