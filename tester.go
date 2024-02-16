@@ -99,7 +99,7 @@ func (tt *Tester) Query(q map[string]string) TesterInterface {
 	var r string
 	for k, v := range q {
 		if v == "" {
-			errors["query"] = "Query value is required"
+			errors["query "+k] = "Query value is required"
 			return tt
 		}
 
