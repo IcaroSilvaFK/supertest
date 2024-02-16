@@ -9,16 +9,20 @@ import (
 	"io"
 	"net/http"
 	"testing"
+
+	"github.com/go-playground/validator/v10"
 )
 
 type Tester struct {
-	httpUrl     string
-	httpHeaders map[string]string
-	httpBody    io.Reader
-	httpMethod  string
-	httpStatus  int
-	response    interface{}
-	resp        *http.Response
+	httpUrl      string `validate:"required,url"`
+	httpHeaders  map[string]string
+	httpBody     io.Reader
+	httpMethod   string `validate:"required"`
+	httpStatus   int
+	response     interface{}
+	resp         *http.Response
+	validation   *validator.Validate
+	validateBody bool
 }
 
 var errors = make(map[string]string, 0)
@@ -31,6 +35,7 @@ type TesterInterface interface {
 	Query(map[string]string) TesterInterface
 	Body([]byte) TesterInterface
 	Status(int) TesterInterface
+	ValidateBody() TesterInterface
 	GetUrl() string
 	Build(*testing.T) *Tester
 }
@@ -40,11 +45,12 @@ type TesterInterface interface {
 // instance := supertest.NewHttpTester()
 //
 // The snapshot is used to create a test builder
-func NewHttpTester() TesterInterface {
+func New() TesterInterface {
 	return &Tester{
 		httpHeaders: map[string]string{
 			"Content-Type": "application/json",
 		},
+		validation: validator.New(),
 	}
 }
 
@@ -54,7 +60,6 @@ func NewHttpTester() TesterInterface {
 //
 // This return an instance of Tester
 func (tt *Tester) Method(m string) TesterInterface {
-
 	if m == "" {
 		errors["method"] = "Method is required"
 		return nil
@@ -188,15 +193,25 @@ func (tt *Tester) Body(bt []byte) TesterInterface {
 	return tt
 }
 
+func (tt *Tester) ValidateBody() TesterInterface {
+	tt.validateBody = true
+
+	return tt
+}
+
 // This return an instance of Tester expected testing
 //
 // instance.Method("GET").Url("http://httpbin.org/status/404").Status(404).Build(t)
 //
 // This return an instance of Tester
 func (tt *Tester) Build(t *testing.T) *Tester {
+	if !tt.validateStructRequestIsValid() {
+		t.Errorf("Struct validation error: %s", errors["makeValidateStructRequest"])
+	}
 
 	tt.makeRequest()
 	tt.makeResponse()
+	tt.validateBodyReturned()
 
 	if len(errors) > 0 {
 		message := ""
@@ -213,7 +228,6 @@ func (tt *Tester) Build(t *testing.T) *Tester {
 }
 
 func (tt *Tester) makeRequest() {
-
 	r, err := http.NewRequest(tt.httpMethod, tt.httpUrl, tt.httpBody)
 	if err != nil {
 		errors["makeRequest"] = err.Error()
@@ -224,7 +238,6 @@ func (tt *Tester) makeRequest() {
 	c := http.DefaultClient
 
 	res, err := c.Do(r)
-
 	if err != nil {
 		errors["makeRequest"] = err.Error()
 		return
@@ -236,7 +249,6 @@ func (tt *Tester) makeRequest() {
 }
 
 func (tt *Tester) makeResponse() {
-
 	if tt.response == nil {
 		return
 	}
@@ -266,8 +278,24 @@ func (tt *Tester) makeHeaders(r *http.Request) {
 	}
 }
 
-func (tt *Tester) checkWithStatusIsEqualExpected(status int) {
+func (tt *Tester) validateStructRequestIsValid() bool {
+	if err := tt.validation.Struct(tt); err != nil {
+		errors["makeValidateStructRequest"] = err.Error()
+		return false
+	}
 
+	return true
+}
+
+func (tt *Tester) validateBodyReturned() {
+	if tt.validateBody && tt.response != nil {
+		if err := tt.validation.Struct(tt.response); err != nil {
+			errors["validateBodyReturned"] = err.Error()
+		}
+	}
+}
+
+func (tt *Tester) checkWithStatusIsEqualExpected(status int) {
 	if tt.httpStatus != status {
 		str := fmt.Sprintf("Expected status: %d but got: %d", tt.httpStatus, status)
 		errors["checkWithStatusIsEqualExpected"] = str
@@ -280,4 +308,20 @@ func (tt *Tester) checkWithStatusIsEqualExpected(status int) {
 // instance.GetUrl() == "http://httpbin.org/get"
 func (tt *Tester) GetUrl() string {
 	return tt.httpUrl
+}
+
+func (tt *Tester) GetStatus() int {
+	return tt.httpStatus
+}
+
+func (tt *Tester) GetResponse() *http.Response {
+	return tt.resp
+}
+
+func (tt *Tester) GetBody() interface{} {
+	return tt.response
+}
+
+func (tt *Tester) GetHeaders() map[string]string {
+	return tt.httpHeaders
 }
