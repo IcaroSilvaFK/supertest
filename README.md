@@ -151,6 +151,6 @@ This project is licensed under the terms of the MIT license.
 
 Made with [contrib.rocks](https://contrib.rocks).
 
-<a href="https://github.com/IcaroSilvaFK">
-  <img src="https://avatars.githubusercontent.com/u/86238635?v=4" />
+<a href="https://github.com/IcaroSilvaFK/supertest/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=IcaroSilvaFK/supertest" />
 </a>
