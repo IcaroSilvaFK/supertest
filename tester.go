@@ -230,7 +230,7 @@ func (tt *Tester) Build(t *testing.T) *Tester {
 func (tt *Tester) makeRequest() {
 	r, err := http.NewRequest(tt.httpMethod, tt.httpUrl, tt.httpBody)
 	if err != nil {
-		errors["makeRequest"] = err.Error()
+		errors["Error on create request"] = err.Error()
 	}
 
 	tt.makeHeaders(r)
@@ -239,7 +239,7 @@ func (tt *Tester) makeRequest() {
 
 	res, err := c.Do(r)
 	if err != nil {
-		errors["makeRequest"] = err.Error()
+		errors["Error on execute request"] = err.Error()
 		return
 	}
 
@@ -258,12 +258,12 @@ func (tt *Tester) makeResponse() {
 	defer tt.resp.Body.Close()
 
 	if err != nil {
-		errors["makeResponse"] = err.Error()
+		errors["Error on read response"] = err.Error()
 		return
 	}
 
 	if err := json.Unmarshal(bt, tt.response); err != nil {
-		errors["makeResponse"] = err.Error()
+		errors["Error on unmarshal response"] = err.Error()
 		return
 	}
 }
@@ -280,7 +280,7 @@ func (tt *Tester) makeHeaders(r *http.Request) {
 
 func (tt *Tester) validateStructRequestIsValid() bool {
 	if err := tt.validation.Struct(tt); err != nil {
-		errors["makeValidateStructRequest"] = err.Error()
+		errors["Make validate build invalid"] = err.Error()
 		return false
 	}
 
@@ -290,7 +290,7 @@ func (tt *Tester) validateStructRequestIsValid() bool {
 func (tt *Tester) validateBodyReturned() {
 	if tt.validateBody && tt.response != nil {
 		if err := tt.validation.Struct(tt.response); err != nil {
-			errors["validateBodyReturned"] = err.Error()
+			errors["Body struct invalid"] = err.Error()
 		}
 	}
 }
@@ -298,7 +298,7 @@ func (tt *Tester) validateBodyReturned() {
 func (tt *Tester) checkWithStatusIsEqualExpected(status int) {
 	if tt.httpStatus != status {
 		str := fmt.Sprintf("Expected status: %d but got: %d", tt.httpStatus, status)
-		errors["checkWithStatusIsEqualExpected"] = str
+		errors["Error expected status"] = str
 		return
 	}
 }
