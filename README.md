@@ -42,7 +42,7 @@ package yours
 
 import (
   "testing"
-  "github.com/stretchr/testify/assert"
+	"github.com/IcaroSilvaFK/supertest"
 )
 
 func TestShouldExpectHttpErrorNotFoundOnApiNotExists(t *testing.T) {
@@ -126,12 +126,6 @@ func TestShouldValidateBody(t *testing.T) {
 }
 
 ```
-
----
-
-# Staying up to date
-
-To update Testify to the latest version, use `go get -u github.com/IcaroSilvaFK/supertest`.
 
 ---
 
